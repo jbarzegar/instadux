@@ -15,7 +15,7 @@
   "devDependencies": {
     "@babel/core": "^7.6.0",
     "@babel/preset-typescript": "^7.1.0",
-    "@types/lodash": "^4.14.119",
+    "@types/lodash": "^4.14.138",
     "@types/redux-actions": "^2.6.1",
     "babel-eslint": "^10.0.3",
     "babel-preset-react": "^6.24.1",
