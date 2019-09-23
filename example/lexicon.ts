@@ -11,22 +11,22 @@ declarations - custom action creators that do nothing
 
 export default [
   {
-    name: 'todos',
+    name: "todos",
     initialState: {},
     resolvers: {
       makeTodoRed: (state, { payload }) => ({
         ...state,
-        color: 'red',
-      }),
+        color: "red"
+      })
     },
-    declarations: [
-      'screamAtTodos',
-      { name: 'screamBecauseOfTodos', async: true },
-    ],
+    qualifiers: [
+      "screamAtTodos",
+      { name: "screamBecauseOfTodos", prefixes: ["success", "failure"] }
+    ]
   },
 
   {
-    name: 'count',
-    initialState: 0,
-  },
-]
+    name: "count",
+    initialState: 0
+  }
+];

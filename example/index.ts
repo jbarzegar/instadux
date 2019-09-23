@@ -1,18 +1,21 @@
-import createState from '../lib/scaffold'
-import lexicon from './lexicon'
-import { createStore, combineReducers } from 'redux'
+import createState from "../lib/scaffold";
+import lexicon from "./lexicon";
+import { createStore, combineReducers } from "redux";
 
-let { actions, reducers } = createState(lexicon, {
-  customQualifiers: ['yo', 'memes', 'sweetboi'],
-})
+let { actions, reducers } = createState([
+  {
+    name: "todos",
+    initialState: {}
+  }
+]);
 
-console.log('reducers', reducers)
-console.log('actions', actions)
+console.log("reducers", reducers);
+console.log("actions", actions);
 
-let reducer = combineReducers(reducers)
-let store = createStore(reducer)
+let reducer = combineReducers(reducers);
+let store = createStore(reducer);
 
 // @ts-ignore
-window.actions = actions
+window.actions = actions;
 // @ts-ignore
-window.store = store
+window.store = store;

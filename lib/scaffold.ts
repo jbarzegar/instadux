@@ -1,125 +1,111 @@
-import { createAction, handleActions } from 'redux-actions'
-import { toPairs, isEmpty } from 'lodash'
+import { createAction, handleActions } from "redux-actions";
 
-import { asyncResolvers, commonResolvers, commonQualifiers } from './resolvers'
+import { asyncResolvers, commonResolvers, commonQualifiers } from "./resolvers";
 import {
   createAsyncResolvers,
   createDefaultReducers,
-  convertToActionName,
-} from './helpers'
+  convertToActionName
+} from "./helpers";
 
-import { LexiconEntry, Declaration } from './types'
+import { LexiconEntry, Actions } from "./types";
+import { Reducer, ReducersMapObject, ActionCreator } from "redux";
 
-let createReducerAction = (domain: string, qualifiers: any) => (
-  acc: Object,
-  d: string | Declaration,
-) => {
-  let create = (actionName: string): Function =>
-    createAction(convertToActionName(domain, actionName))
+const createReducerAction = (name: string) => (acc: Object, name: string) => {
+  const create = (actionName: string) =>
+    createAction(convertToActionName(name, actionName));
 
-  if (typeof d === 'object' && d.async) {
-    let a = createAsyncResolvers([d.name], qualifiers).reduce(
-      (obj: Object, x: string) => {
-        obj[x] = create(x)
-        return obj
-      },
-      {},
-    )
+  acc[name] = create(name);
 
-    return { ...acc, ...a }
-  }
-  acc[d] = create(d)
+  return acc;
+};
 
-  return acc
-}
+type MakeActions = {
+  name?: string;
+  verbs?: string[];
+  resolvers?: Object;
+  qualifiers?: string[];
+};
 
-type ActionParams = {
-  domain: string
-  verbs: Array<string>
-  resolvers: Object
-  declarations: Array<Object>
-  qualifiers: Array<string>
-}
-let makeActions = ({
-  domain,
-  verbs,
-  resolvers = {},
-  declarations = [],
-  qualifiers = [],
-}: ActionParams): Object =>
-  [...verbs, ...declarations, ...Object.keys(resolvers)].reduce(
-    createReducerAction(domain, qualifiers),
-    {},
-  )
+const makeActions = ({ name, resolvers = {}, verbs }: MakeActions) => {
+  const resolverNames = Object.keys(resolvers);
+  const toMake = [...verbs, ...resolverNames];
 
-let mapCustomReducer = (resolvers: Object, name: string) =>
-  toPairs(resolvers).reduce((obj, [k, v]) => {
-    obj[convertToActionName(name, k)] = v
+  return toMake.reduce(createReducerAction(name), {});
+};
 
-    return obj
-  }, {})
+const mapCustomReducer = (resolvers: Object, name: string) =>
+  Object.entries(resolvers).reduce((obj, [k, v]) => {
+    obj[convertToActionName(name, k)] = v;
+
+    return obj;
+  }, {});
 
 type ReducerParam = {
-  name: string
-  initialState: Object
-  resolvers: Object
-  actions: Object
-}
-let makeReducer = ({
+  name: string;
+  initialState: Object;
+  resolvers: Object;
+  actions: Actions;
+};
+const makeReducer = ({
   name,
   initialState = { loading: false, error: false },
   resolvers = {},
-  actions,
+  actions
 }: ReducerParam): Object =>
   handleActions(
     {
       ...createDefaultReducers(actions),
-      ...mapCustomReducer(resolvers, name),
+      ...mapCustomReducer(resolvers, name)
     },
-    initialState,
-  )
+    initialState
+  );
 
-type Acc = {
-  actions: Object
-  reducers: Object
-}
+type GeneratedLexicon = {
+  actions: Object;
+  reducers: Object;
+};
 
 type Options = {
-  customQualifiers?: Array<string>
-}
-export default (
-  lexicon: Array<Object>,
-  { customQualifiers = [] }: Options = {},
-) => {
+  qualifiers?: Array<string>;
+};
+
+type ScaffoldReturn = {
+  actions: Actions;
+  reducers: ReducersMapObject<unknown>;
+};
+
+export default (lexicon: Array<LexiconEntry>) => {
   if (lexicon.length === 0) {
-    console.error('You have no entries in your lexicon')
+    console.error("You have no entries in your lexicon");
   }
 
-  let qualifiers = isEmpty(customQualifiers)
-    ? commonQualifiers
-    : [...commonQualifiers, ...customQualifiers]
+  // const qualifiers = commonQualifiers;
 
   return lexicon.reduce(
-    (acc: Acc, d: LexiconEntry) => {
-      let verbs = [
-        ...commonResolvers,
-        ...createAsyncResolvers(asyncResolvers, qualifiers),
-      ]
+    // Generate actions and reducers
+    (generated: GeneratedLexicon, entry: LexiconEntry): ScaffoldReturn => {
+      const verbs = [
+        ...commonResolvers
+        // ...createAsyncResolvers(asyncResolvers, qualifiers)
+      ];
 
-      let actions = makeActions({
-        ...lexicon,
-        domain: d.name,
-        resolvers: d.resolvers,
-        declarations: d.declarations,
-        qualifiers,
+      const actions = makeActions({
+        name: entry.name,
         verbs,
-      })
+        resolvers: entry.resolvers
+      });
 
-      acc.actions[d.name] = actions
-      // @ts-ignore
-      acc.reducers[d.name] = makeReducer({ actions, ...d })
-      return acc
+      generated.actions[entry.name] = actions;
+
+      generated.reducers[entry.name] = makeReducer({
+        actions,
+        name: entry.initialState,
+        resolvers: entry.resolvers,
+        initialState: entry.initialState
+      });
+
+      return generated;
     },
-    { actions: {}, reducers: {} },
-  )
-}
+    { actions: {}, reducers: {} }
+  );
+};
