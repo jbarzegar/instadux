@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.11",
-    "redux": "^4.0.4",
+    "redux": "^4.0.5",
     "redux-actions": "^2.6.5"
   },
   "devDependencies": {
