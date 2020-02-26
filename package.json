@@ -17,7 +17,7 @@
     "@babel/preset-typescript": "^7.6.0",
     "@types/lodash": "^4.14.144",
     "@types/redux-actions": "^2.6.1",
-    "babel-eslint": "^10.0.3",
+    "babel-eslint": "^10.1.0",
     "babel-preset-react": "^6.24.1",
     "eslint": "^6.5.1",
     "eslint-config-prettier": "^6.4.0",
